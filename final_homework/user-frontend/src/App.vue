@@ -22,26 +22,23 @@ function handleLogout() {
 }
 
 const navItems = [
-  { path: '/', label: '浏览岗位', icon: '💼' },
-  { path: '/profile', label: '个人档案', icon: '📋' },
-  { path: '/applications', label: '我的投递', icon: '📮' }
+  { path: '/', label: '\u9996\u9875' },
+  { path: '/profile', label: '\u4e2a\u4eba\u8d44\u6599' },
+  { path: '/applications', label: '\u6211\u7684\u6295\u9012' }
 ]
 
 window.__showToast = showToast
 </script>
 
 <template>
-  <div class="app-layout">
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <div class="brand-icon">🎯</div>
-        <div>
-          <div class="brand-title">智能招聘</div>
-          <div class="brand-sub">{{ auth.loggedIn ? '候选人端' : '游客模式' }}</div>
-        </div>
-      </div>
+  <div class="candidate-shell">
+    <header class="candidate-header">
+      <router-link to="/" class="brand">
+        <span class="brand-mark">+</span>
+        <span>&#26234;&#33021;&#25307;&#32856;&#31995;&#32479;</span>
+      </router-link>
 
-      <nav class="sidebar-nav">
+      <nav class="top-nav">
         <router-link
           v-for="item in navItems"
           :key="item.path"
@@ -49,24 +46,18 @@ window.__showToast = showToast
           class="nav-item"
           :class="{ active: route.path === item.path }"
         >
-          <span class="nav-icon">{{ item.icon }}</span>
-          <span>{{ item.label }}</span>
+          {{ item.label }}
         </router-link>
       </nav>
 
-      <div class="sidebar-footer">
+      <div class="header-actions">
         <template v-if="auth.loggedIn">
-          <div class="user-info">
-            <div class="user-avatar">{{ (auth.user?.email || 'C')[0].toUpperCase() }}</div>
-            <div class="user-email">{{ auth.user?.email }}</div>
-          </div>
-          <button class="btn-ghost btn-sm" @click="handleLogout">退出</button>
+          <span class="user-email">{{ auth.user?.email }}</span>
+          <button class="btn-ghost btn-sm" @click="handleLogout">&#36864;&#20986;</button>
         </template>
-        <router-link v-else to="/login" class="btn-primary btn-sm" style="text-decoration:none;width:100%;text-align:center">
-          登录 / 注册
-        </router-link>
+        <router-link v-else to="/login" class="login-link">&#30331;&#24405; / &#27880;&#20876;</router-link>
       </div>
-    </aside>
+    </header>
 
     <main class="main-content">
       <router-view @toast="showToast" />
@@ -81,98 +72,139 @@ window.__showToast = showToast
 </template>
 
 <style scoped>
-.app-layout {
-  display: flex;
+.candidate-shell {
   min-height: 100vh;
+  background: var(--bg);
 }
 
-.sidebar {
-  width: var(--sidebar-width);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  position: fixed;
+/* ============ Glass Header ============ */
+.candidate-header {
+  position: sticky;
   top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 10;
-}
-
-.sidebar-brand {
-  display: flex;
+  z-index: 20;
+  height: 62px;
+  display: grid;
+  grid-template-columns: minmax(170px, 240px) 1fr minmax(160px, 240px);
   align-items: center;
-  gap: 0.75rem;
-  padding: 1.25rem;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  background: var(--bg-card);
   border-bottom: 1px solid var(--border);
-}
-.brand-icon { font-size: 1.75rem; }
-.brand-title { font-weight: 800; font-size: 1rem; color: var(--text); }
-.brand-sub { font-size: 0.75rem; color: var(--text-muted); }
-
-.sidebar-nav {
-  flex: 1;
-  padding: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  box-shadow: var(--shadow-sm);
 }
 
-.nav-item {
-  display: flex;
+.brand {
+  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: 14px;
-  color: var(--text-secondary);
+  gap: 0.65rem;
+  color: var(--text);
   text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all var(--transition);
+  white-space: nowrap;
 }
-.nav-item:hover { background: rgba(37, 99, 235, 0.08); color: var(--text); transform: translateX(2px); }
-.nav-item.active {
-  background: linear-gradient(135deg, #EAF2FF 0%, #F5F9FF 100%);
-  color: var(--primary);
-  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.12);
-}
-.nav-icon { font-size: 1.1rem; }
-
-.sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.user-info { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
-.user-avatar {
+.brand-mark {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: var(--primary-light);
-  color: var(--primary);
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--primary-gradient);
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.2);
+}
+.brand span:last-child {
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+.top-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 0.8rem;
-  flex-shrink: 0;
+  gap: 0.3rem;
+}
+.nav-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 62px;
+  padding: 0 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: color var(--transition);
+}
+.nav-item:hover { color: var(--primary); }
+.nav-item.active { color: var(--primary); font-weight: 700; }
+.nav-item.active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 36px;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: var(--primary-gradient);
+  transform: translateX(-50%);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  min-width: 0;
 }
 .user-email {
-  font-size: 0.8rem;
   color: var(--text-secondary);
+  font-size: 0.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100px;
+}
+.login-link {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  border-radius: 10px;
+  transition: all var(--transition);
+}
+.login-link:hover {
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .main-content {
-  flex: 1;
-  margin-left: var(--sidebar-width);
-  padding: 2.25rem;
-  min-height: 100vh;
+  width: min(1200px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.3rem 0 1.8rem;
+}
+
+@media (max-width: 760px) {
+  .candidate-header {
+    height: auto;
+    grid-template-columns: 1fr;
+    padding: 0.85rem 1rem;
+    gap: 0.6rem;
+  }
+  .top-nav {
+    justify-content: flex-start;
+    gap: 0.5rem;
+    overflow-x: auto;
+  }
+  .nav-item {
+    height: 40px;
+    flex: 0 0 auto;
+  }
+  .header-actions {
+    justify-content: flex-start;
+  }
 }
 </style>

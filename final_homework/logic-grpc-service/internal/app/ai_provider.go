@@ -111,7 +111,7 @@ func (p *EinoAIProvider) ParseFields(ctx context.Context, resumeText string) (Pr
   "phone": "联系电话",
   "education": "最高学历（如本科、硕士、博士）",
   "school": "毕业院校",
-  "experience": "工作或项目经历（简要概括）",
+  "experience": "工作或项目经历，尽量完整保留简历原文，不要总结、不要概括、不要压缩，多段经历用换行分隔",
   "skills": "核心技能标签（逗号分隔）"
 }
 如果某个字段无法从简历中提取，填空字符串。`,
@@ -128,7 +128,6 @@ func (p *EinoAIProvider) ParseFields(ctx context.Context, resumeText string) (Pr
 		return Profile{}, errors.New("AI 返回为空")
 	}
 
-	// 提取 JSON 部分
 	content := response.Content
 	start := strings.Index(content, "{")
 	end := strings.LastIndex(content, "}")

@@ -45,8 +45,11 @@ final_homework/
 
 ```powershell
 cd final_homework/logic-grpc-service
+python -m pip install -r requirements.txt
 go run ./cmd/logic
 ```
+
+说明：PDF 简历解析使用 Python 包 `PyMuPDF` 提取文字；DOCX 使用内置 OpenXML 文本提取；DOC 使用 `antiword` 提取文字，需提前安装并加入 PATH。提取到文本后，再通过 Eino 调用 DeepSeek 提取结构化字段。如果使用的是虚拟环境、Anaconda 或多 Python 环境，可先激活目标环境，或设置 `PYTHON_BIN` 指向已安装 PyMuPDF 的 Python。
 
 默认使用本机 MySQL：
 

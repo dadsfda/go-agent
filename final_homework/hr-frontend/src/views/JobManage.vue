@@ -10,6 +10,7 @@ const editing = ref(null)
 const loading = ref(false)
 const keyword = ref('')
 const statusFilter = ref('all')
+const currentUserId = computed(() => Number(auth.user?.id || 0))
 
 async function loadJobs() {
   try {
@@ -50,6 +51,9 @@ async function handleSubmit() {
 }
 
 function startEdit(job) {
+  if (!isOwnJob(job)) {
+    return emit('toast', { message: '只能编辑自己创建的岗位', type: 'error' })
+  }
   editing.value = job
   form.value = { title: job.title, description: job.description }
 }
@@ -60,6 +64,9 @@ function cancelEdit() {
 }
 
 async function closeJob(job) {
+  if (!isOwnJob(job)) {
+    return emit('toast', { message: '只能下架自己创建的岗位', type: 'error' })
+  }
   try {
     await request(`/hr/jobs/${job.id}`, {
       method: 'PUT',
@@ -73,6 +80,9 @@ async function closeJob(job) {
 }
 
 async function republishJob(job) {
+  if (!isOwnJob(job)) {
+    return emit('toast', { message: '只能重新上架自己创建的岗位', type: 'error' })
+  }
   try {
     await request(`/hr/jobs/${job.id}`, {
       method: 'PUT',
@@ -86,6 +96,9 @@ async function republishJob(job) {
 }
 
 async function deleteJob(job) {
+  if (!isOwnJob(job)) {
+    return emit('toast', { message: '只能删除自己创建的岗位', type: 'error' })
+  }
   if (!confirm(`确定要删除岗位「${job.title}」吗？删除后不可恢复。`)) return
   try {
     await request(`/hr/jobs/${job.id}`, { method: 'DELETE' })
@@ -108,6 +121,14 @@ const filteredJobs = computed(() => {
   })
 })
 const descriptionLength = computed(() => form.value.description.trim().length)
+
+function isOwnJob(job) {
+  return Number(job.ownerHrId) === currentUserId.value
+}
+
+function ownerText(job) {
+  return isOwnJob(job) ? '我发布的' : `HR #${job.ownerHrId}`
+}
 
 function statusText(job) {
   return job.status === 'open' ? '候选人可见，可继续投递' : '岗位已隐藏，重新上架后恢复投递'
@@ -182,7 +203,7 @@ onMounted(loadJobs)
         </div>
         <div class="summary-note">
           <strong>管理提示</strong>
-          <p>招聘中的岗位会展示给候选人；下架不会删除历史数据，适合临时停招。</p>
+          <p>全部岗位可查看；只有自己发布的岗位可以编辑、下架或删除。</p>
         </div>
       </div>
     </div>
@@ -190,8 +211,8 @@ onMounted(loadJobs)
     <div class="card ledger-card">
       <div class="ledger-header">
         <div>
-          <h3>我的岗位</h3>
-          <p>统一查看岗位名称、状态和最近维护动作</p>
+          <h3>全部岗位</h3>
+          <p>可查看全部岗位，维护动作仅限本人发布的岗位</p>
         </div>
         <div class="ledger-actions">
           <input v-model="keyword" placeholder="搜索岗位名称或描述" />
@@ -214,6 +235,7 @@ onMounted(loadJobs)
             <tr>
               <th>ID</th>
               <th>岗位名称</th>
+              <th>归属</th>
               <th>描述</th>
               <th>状态</th>
               <th>操作</th>
@@ -226,6 +248,9 @@ onMounted(loadJobs)
                 <div class="job-title">{{ job.title }}</div>
                 <div class="muted">候选人可见字段</div>
               </td>
+              <td>
+                <span class="owner-tag" :class="{ external: !isOwnJob(job) }">{{ ownerText(job) }}</span>
+              </td>
               <td class="description-cell">{{ textPreview(job.description) }}</td>
               <td>
                 <div class="status-stack">
@@ -236,12 +261,13 @@ onMounted(loadJobs)
                 </div>
               </td>
               <td>
-                <div class="action-group">
+                <div v-if="isOwnJob(job)" class="action-group">
                   <button class="btn-secondary btn-sm" @click="startEdit(job)">编辑</button>
                   <button v-if="job.status === 'open'" class="btn-danger btn-sm" @click="closeJob(job)">下架</button>
                   <button v-if="job.status === 'closed'" class="btn-primary btn-sm" @click="republishJob(job)">重新上架</button>
                   <button class="btn-outline-danger btn-sm" @click="deleteJob(job)">删除</button>
                 </div>
+                <span v-else class="readonly-text">仅可查看</span>
               </td>
             </tr>
           </tbody>
@@ -264,7 +290,7 @@ onMounted(loadJobs)
 .publish-card,
 .summary-card,
 .ledger-card {
-  border: 1px solid rgba(226, 232, 240, 0.92);
+  border: 1px solid var(--border-light);
 }
 .publish-card,
 .summary-card {
@@ -300,8 +326,8 @@ onMounted(loadJobs)
   padding: 0 0.75rem;
   border-radius: 999px;
   color: var(--primary);
-  background: linear-gradient(135deg, #EDF4FF 0%, #E3EEFF 100%);
-  font-size: 0.78rem;
+  background: var(--primary-light);
+  font-size: 0.76rem;
   font-weight: 700;
 }
 .field-head {
@@ -334,9 +360,15 @@ onMounted(loadJobs)
 .summary-grid > div {
   min-height: 92px;
   padding: 1rem 0.85rem;
-  border-radius: 16px;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F7FAFF 100%);
-  border: 1px solid rgba(220, 229, 242, 0.92);
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+.summary-grid > div:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 .summary-grid strong {
   display: block;
@@ -349,9 +381,9 @@ onMounted(loadJobs)
 }
 .summary-note {
   padding: 1rem;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  background: linear-gradient(135deg, #FFFFFF 0%, #F8FBFF 100%);
+  background: var(--bg-card);
 }
 .summary-note strong {
   font-size: 0.88rem;
@@ -368,12 +400,29 @@ onMounted(loadJobs)
   table-layout: fixed;
 }
 .jobs-table th:nth-child(1) { width: 8%; }
-.jobs-table th:nth-child(2) { width: 20%; }
-.jobs-table th:nth-child(3) { width: 31%; }
-.jobs-table th:nth-child(4) { width: 24%; }
-.jobs-table th:nth-child(5) { width: 17%; }
+.jobs-table th:nth-child(2) { width: 18%; }
+.jobs-table th:nth-child(3) { width: 12%; }
+.jobs-table th:nth-child(4) { width: 28%; }
+.jobs-table th:nth-child(5) { width: 21%; }
+.jobs-table th:nth-child(6) { width: 13%; }
 .job-title {
   font-weight: 700;
+}
+.owner-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 0.65rem;
+  border-radius: 999px;
+  color: #0F7A43;
+  background: #EAF8EF;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.owner-tag.external {
+  color: var(--text-secondary);
+  background: #F1F5F9;
 }
 .description-cell {
   color: var(--text-secondary);
@@ -392,6 +441,11 @@ onMounted(loadJobs)
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+.readonly-text {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 .btn-outline-danger {
   background: #fff;

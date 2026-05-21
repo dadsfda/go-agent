@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package smartrecruitment;
 
-option go_package = "smart-recruitment/web-gin-service/proto;logicpb";
+option go_package = "smart-recruitment/logic-grpc-service/proto;logicpb";
 
 service LogicService {
   rpc Register(AuthRequest) returns (AuthResponse);
@@ -20,6 +20,7 @@ service LogicService {
   rpc ListApplications(ListApplicationsRequest) returns (ApplicationListResponse);
   rpc AskAI(AskAIRequest) returns (AIMessage);
   rpc AIHistory(UserIDRequest) returns (AIHistoryResponse);
+  rpc ClearAIHistory(UserIDRequest) returns (Empty);
 }
 
 message Empty {}

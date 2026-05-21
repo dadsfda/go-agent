@@ -20,7 +20,7 @@ func (p *fakeAIProvider) Answer(_ context.Context, businessContext, question str
 
 func (p *fakeAIProvider) ParseFields(_ context.Context, resumeText string) (Profile, error) {
 	p.parsedText = resumeText
-	return Profile{Name: "解析候选人"}, nil
+	return Profile{Name: "AI 解析候选人", Phone: "13800008888"}, nil
 }
 
 func TestHasExtractedResumeFields(t *testing.T) {
@@ -60,4 +60,71 @@ func TestAskAIUsesProviderWithBusinessContext(t *testing.T) {
 	if !strings.Contains(provider.seenContext, "【投递总人数】1") {
 		t.Fatalf("expected business context to include application count, got %s", provider.seenContext)
 	}
+}
+
+func TestParseResumeUsesAIProviderForFields(t *testing.T) {
+	service := NewService()
+	provider := &fakeAIProvider{}
+	service.WithAI(provider)
+	candidate, _ := service.Register("candidate", "candidate-parse-provider@example.com", "pass")
+
+	profile, err := service.ParseResume(candidate.ID, "resume.pdf", sampleTextPDF())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if profile.Name != "AI 解析候选人" {
+		t.Fatalf("expected AI parsed profile, got %+v", profile)
+	}
+	if !strings.Contains(provider.parsedText, "Name: Zhang San") {
+		t.Fatalf("expected provider to receive extracted PDF text, got %q", provider.parsedText)
+	}
+}
+
+func sampleTextPDF() []byte {
+	return []byte(`%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 220 >>
+stream
+BT
+/F1 14 Tf
+72 720 Td
+(Name: Zhang San) Tj
+0 -24 Td
+(Phone: 13800008888) Tj
+0 -24 Td
+(Education: Bachelor) Tj
+0 -24 Td
+(School: Wuhan University) Tj
+0 -24 Td
+(Experience: Java backend developer.) Tj
+0 -24 Td
+(Skills: Java, MySQL, Redis) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+581
+%%EOF`)
 }

@@ -63,34 +63,49 @@ async function handleAuth(mode) {
 
 <style scoped>
 .login-card {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
-  border: 1px solid rgba(220, 229, 242, 0.92);
-  border-radius: 20px;
-  padding: 2.4rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2.8rem;
   width: 100%;
-  max-width: 430px;
-  box-shadow: var(--shadow-md);
-  margin: 4rem auto;
+  max-width: 440px;
+  box-shadow: var(--shadow-lg);
+  margin: 5rem auto;
+  animation: cardIn 0.5s var(--spring);
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .login-brand {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.2rem;
 }
 .login-icon {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.9rem;
+  margin-bottom: 1.1rem;
   border-radius: 18px;
-  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+  background: var(--primary-gradient);
   color: #fff;
-  font-size: 1.25rem;
-  font-weight: 900;
-  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.25);
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  box-shadow: 0 8px 28px rgba(22, 163, 74, 0.3);
 }
-.login-brand h1 { font-size: 1.45rem; color: var(--text); margin-bottom: 0.25rem; }
-.login-brand p { font-size: 0.85rem; color: var(--text-muted); }
-.login-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+.login-brand h1 {
+  font-size: 1.5rem;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.02em;
+}
+.login-brand p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.login-actions { display: flex; gap: 0.85rem; margin-top: 1.8rem; }
 </style>

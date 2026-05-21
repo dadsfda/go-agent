@@ -28,6 +28,8 @@ type Profile struct {
 	Skills      string `json:"skills"`
 }
 
+const maxProfileSkillsLen = 255
+
 type Job struct {
 	ID          int64  `json:"id"`
 	OwnerHRID   int64  `json:"ownerHrId"`
@@ -174,6 +176,9 @@ func (s *Service) SaveProfile(candidateID int64, profile Profile) error {
 	if err := s.requireRoleLocked(candidateID, "candidate"); err != nil {
 		return err
 	}
+	if err := validateProfile(profile); err != nil {
+		return err
+	}
 	profile.CandidateID = candidateID
 	if strings.TrimSpace(profile.Name) == "" ||
 		strings.TrimSpace(profile.Phone) == "" ||
@@ -184,6 +189,21 @@ func (s *Service) SaveProfile(candidateID int64, profile Profile) error {
 		return errors.New("候选人档案必填字段不能为空")
 	}
 	s.profiles[candidateID] = profile
+	return nil
+}
+
+func validateProfile(profile Profile) error {
+	if strings.TrimSpace(profile.Name) == "" ||
+		strings.TrimSpace(profile.Phone) == "" ||
+		strings.TrimSpace(profile.Education) == "" ||
+		strings.TrimSpace(profile.School) == "" ||
+		strings.TrimSpace(profile.Experience) == "" ||
+		strings.TrimSpace(profile.Skills) == "" {
+		return errors.New("候选人档案必填字段不能为空")
+	}
+	if len([]rune(strings.TrimSpace(profile.Skills))) > maxProfileSkillsLen {
+		return fmt.Errorf("技能标签不能超过 %d 个字符", maxProfileSkillsLen)
+	}
 	return nil
 }
 
@@ -336,7 +356,7 @@ func (s *Service) ListHRJobs(hrID int64) ([]Job, error) {
 	}
 	jobs := make([]Job, 0)
 	for _, job := range s.jobs {
-		if job.OwnerHRID == hrID && job.Status != "deleted" {
+		if job.Status != "deleted" {
 			jobs = append(jobs, job)
 		}
 	}
@@ -543,6 +563,19 @@ func (s *Service) AIHistory(hrID int64) ([]AIMessage, error) {
 	}
 	history := append([]AIMessage(nil), s.aiMessages[hrID]...)
 	return history, nil
+}
+
+func (s *Service) ClearAIHistory(hrID int64) error {
+	if s.mysql != nil {
+		return s.mysql.ClearAIHistory(hrID)
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if err := s.requireRoleLocked(hrID, "hr"); err != nil {
+		return err
+	}
+	delete(s.aiMessages, hrID)
+	return nil
 }
 
 func (s *Service) UserByID(id int64) (User, error) {

@@ -137,6 +137,9 @@ func (s *MySQLStore) SaveProfile(candidateID int64, profile Profile) error {
 	if err := s.requireRole(candidateID, "candidate"); err != nil {
 		return err
 	}
+	if err := validateProfile(profile); err != nil {
+		return err
+	}
 	profile.CandidateID = candidateID
 	if strings.TrimSpace(profile.Name) == "" ||
 		strings.TrimSpace(profile.Phone) == "" ||
@@ -270,6 +273,13 @@ func (s *MySQLStore) UpdateJob(hrID, jobID int64, title, description, status str
 		return err
 	}
 	if affected == 0 {
+		var exists int
+		if err := s.db.QueryRow(`SELECT COUNT(*) FROM jobs WHERE id = ? AND owner_hr_id = ?`, jobID, hrID).Scan(&exists); err != nil {
+			return err
+		}
+		if exists > 0 {
+			return nil
+		}
 		return errors.New("岗位不存在或无权操作他人岗位")
 	}
 	return nil
@@ -288,7 +298,7 @@ func (s *MySQLStore) ListHRJobs(hrID int64) ([]Job, error) {
 	if err := s.requireRole(hrID, "hr"); err != nil {
 		return nil, err
 	}
-	rows, err := s.db.Query(`SELECT id, owner_hr_id, title, description, status, DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%sZ') FROM jobs WHERE owner_hr_id = ? AND status != 'deleted' ORDER BY id`, hrID)
+	rows, err := s.db.Query(`SELECT id, owner_hr_id, title, description, status, DATE_FORMAT(created_at, '%Y-%m-%dT%H:%i:%sZ') FROM jobs WHERE status != 'deleted' ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
@@ -484,6 +494,14 @@ func (s *MySQLStore) AIHistory(hrID int64) ([]AIMessage, error) {
 		messages = append(messages, message)
 	}
 	return messages, rows.Err()
+}
+
+func (s *MySQLStore) ClearAIHistory(hrID int64) error {
+	if err := s.requireRole(hrID, "hr"); err != nil {
+		return err
+	}
+	_, err := s.db.Exec(`DELETE FROM ai_chat_histories WHERE hr_id = ?`, hrID)
+	return err
 }
 
 func (s *MySQLStore) recentHistory(hrID int64, limit int) []ChatMessage {

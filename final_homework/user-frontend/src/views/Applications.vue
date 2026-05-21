@@ -31,7 +31,7 @@ onMounted(load)
     <div v-if="loading" class="empty card">加载中...</div>
     <div v-else-if="!items.length" class="empty card">暂无投递记录，去「浏览岗位」投递吧</div>
 
-    <div v-else class="app-list">
+    <div v-else class="app-list stagger-in">
       <div v-for="app in items" :key="app.id" class="app-card card">
         <div class="app-header">
           <div>
@@ -54,10 +54,10 @@ onMounted(load)
 .app-list { display: flex; flex-direction: column; gap: 1rem; max-width: 920px; }
 .app-card {
   min-height: 172px;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
-  transition: transform var(--transition), box-shadow var(--transition);
+  background: var(--bg-card);
+  transition: all var(--transition);
 }
-.app-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.app-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .app-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
 .app-kicker {
   color: var(--primary);

@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { request } from '../api.js'
 
 const emit = defineEmits(['toast'])
+const MAX_SKILLS_LENGTH = 255
 const form = ref({
   name: '', phone: '', education: '', school: '', experience: '', skills: ''
 })
@@ -40,6 +41,10 @@ function onFileChange(e) {
 function applyParsedProfile(profile) {
   let filled = 0
   let changed = 0
+  if (profile.skills && profile.skills.length > MAX_SKILLS_LENGTH) {
+    profile.skills = profile.skills.slice(0, MAX_SKILLS_LENGTH)
+    emit('toast', { message: `核心技能标签已限制为 ${MAX_SKILLS_LENGTH} 个字符`, type: 'info' })
+  }
   Object.keys(form.value).forEach(k => {
     if (profile[k]) {
       filled += 1
@@ -72,12 +77,6 @@ async function uploadResume() {
     const data = await request('/candidate/resume', { method: 'POST', body: uploadForm })
     uploadedFile.value = data.fileName
 
-    if (ext !== 'pdf') {
-      parseStatus.value = '简历已上传，当前自动解析仅支持文字版 PDF'
-      emit('toast', { message: parseStatus.value + '，请手动填写档案', type: 'info' })
-      return
-    }
-
     uploading.value = false
     parsing.value = true
     parseStatus.value = '正在解析简历并提取字段...'
@@ -88,7 +87,7 @@ async function uploadResume() {
     selectedFile.value = null
     if (fileInput.value) fileInput.value.value = ''
   } catch (e) {
-    parseStatus.value = '解析失败，请手动填写档案'
+    parseStatus.value = `解析失败：${e.message || '请手动填写档案'}`
     emit('toast', { message: e.message, type: 'error' })
   } finally {
     uploading.value = false
@@ -100,6 +99,9 @@ async function save() {
   const { name, phone, education, school, experience, skills } = form.value
   if (!name.trim() || !phone.trim() || !education.trim() || !school.trim() || !experience.trim() || !skills.trim()) {
     return emit('toast', { message: '所有字段均为必填', type: 'error' })
+  }
+  if (skills.trim().length > MAX_SKILLS_LENGTH) {
+    return emit('toast', { message: `核心技能标签不能超过 ${MAX_SKILLS_LENGTH} 个字符`, type: 'error' })
   }
   loading.value = true
   try {
@@ -134,7 +136,7 @@ onMounted(loadProfile)
       <div class="card profile-side">
         <div class="side-title">档案完整度</div>
         <div class="side-score">6 项</div>
-        <p>上传文字版 PDF 可自动提取关键信息，保存后即可投递岗位。</p>
+        <p>上传文字版 PDF、DOC 或 DOCX 可自动提取关键信息，保存后即可投递岗位。</p>
       </div>
 
     <div class="card profile-card">
@@ -150,7 +152,7 @@ onMounted(loadProfile)
       <div v-if="editing" class="resume-panel">
         <div>
           <div class="resume-title">上传简历自动填入</div>
-          <div class="resume-sub">上传文字版 PDF 后，系统会解析并填入下方档案字段</div>
+          <div class="resume-sub">上传文字版 PDF、DOC 或 DOCX 后，系统会解析并填入下方档案字段</div>
         </div>
         <input ref="fileInput" type="file" accept=".pdf,.doc,.docx" class="file-input" @change="onFileChange" />
         <button type="button" class="btn-ghost" :disabled="uploading || parsing" @click="fileInput.click()">
@@ -209,7 +211,8 @@ onMounted(loadProfile)
         </div>
         <div class="form-group">
           <label>核心技能标签</label>
-          <input v-model="form.skills" placeholder="如：Go, MySQL, Docker, Vue" />
+          <input v-model="form.skills" :maxlength="MAX_SKILLS_LENGTH" placeholder="如：Go, MySQL, Docker, Vue" />
+          <small class="field-count">{{ form.skills.length }} / {{ MAX_SKILLS_LENGTH }}</small>
         </div>
         <button type="submit" class="btn-primary" :disabled="loading || uploading || parsing">
           {{ loading ? '保存中...' : savedFlash ? '已保存' : '保存档案' }}
@@ -232,7 +235,7 @@ onMounted(loadProfile)
   min-height: 360px;
 }
 .profile-side {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
+  background: var(--bg-card);
 }
 .side-title {
   color: var(--text-secondary);
@@ -268,11 +271,11 @@ onMounted(loadProfile)
   gap: 1rem;
   padding: 0.85rem 1rem;
   margin-bottom: 1rem;
-  border: 1px solid #BBF7D0;
-  border-radius: 16px;
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  border-radius: 12px;
   background: #F0FDF4;
   color: #166534;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all var(--transition);
 }
 .save-banner.flash {
   transform: translateY(-2px);
@@ -327,6 +330,7 @@ onMounted(loadProfile)
   margin: 0.4rem 0 0;
   color: var(--text);
   line-height: 1.7;
+  white-space: pre-wrap;
 }
 .resume-panel {
   display: grid;
@@ -335,9 +339,9 @@ onMounted(loadProfile)
   align-items: center;
   padding: 1rem;
   margin-bottom: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: #F8FBFF;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: #F8FAF8;
 }
 .resume-title {
   font-weight: 700;
@@ -378,6 +382,13 @@ onMounted(loadProfile)
   margin-bottom: 1rem;
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+.field-count {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  text-align: right;
 }
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 0.45; }

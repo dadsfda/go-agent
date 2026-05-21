@@ -28,6 +28,7 @@ function formatError(msg) {
   if (s.includes('账号已存在') || s.includes('Duplicate entry') || s.includes('duplicate')) return '该账号已注册，请直接登录或换一个邮箱'
   if (s.includes('邮箱和密码不能为空')) return '请填写邮箱和密码'
   if (s.includes('候选人档案必填字段不能为空')) return '请完整填写姓名、电话、学历、学校、经历和技能'
+  if (s.includes('技能标签不能超过')) return s
   if (s.includes('请先完善结构化个人档案')) return '请先保存完整个人资料，再投递岗位'
   if (s.includes('请先上传合规简历')) return '请先上传 PDF、DOC 或 DOCX 简历，再投递岗位'
   if (s.includes('请勿重复投递')) return '该岗位已经投递过了'

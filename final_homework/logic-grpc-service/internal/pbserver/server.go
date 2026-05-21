@@ -87,6 +87,10 @@ func (s *Server) AIHistory(_ context.Context, req *logicpb.UserIDRequest) (*logi
 	return &logicpb.AIHistoryResponse{Messages: items}, err
 }
 
+func (s *Server) ClearAIHistory(_ context.Context, req *logicpb.UserIDRequest) (*logicpb.Empty, error) {
+	return &logicpb.Empty{}, s.service.ClearAIHistory(req.UserId)
+}
+
 func (s *Server) ParseResume(_ context.Context, req *logicpb.UploadResumeRequest) (*logicpb.Profile, error) {
 	profile, err := s.service.ParseResume(req.UserId, req.FileName, req.Content)
 	return profileToPB(profile), err

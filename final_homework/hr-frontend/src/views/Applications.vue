@@ -202,9 +202,15 @@ onMounted(load)
   min-width: 92px;
   min-height: 76px;
   padding: 0.85rem 0.95rem;
-  border-radius: 16px;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F7FAFF 100%);
-  border: 1px solid rgba(220, 229, 242, 0.92);
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+.ledger-stats > div:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 .ledger-stats strong {
   display: block;
@@ -259,10 +265,11 @@ onMounted(load)
   max-width: 120px;
   padding: 0.28rem 0.65rem;
   border-radius: 999px;
-  background: linear-gradient(135deg, #EEF4FF 0%, #F8FBFF 100%);
-  color: #3B5B86;
-  border: 1px solid rgba(37, 99, 235, 0.14);
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid rgba(31, 115, 241, 0.1);
   font-size: 0.76rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -291,9 +298,14 @@ onMounted(load)
   width: min(620px, 100%);
   height: 100%;
   overflow-y: auto;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
-  box-shadow: -12px 0 32px rgba(15, 23, 42, 0.18);
+  background: var(--bg-card);
+  box-shadow: -16px 0 48px rgba(15, 23, 42, 0.15);
   padding: 1.5rem;
+  animation: panelIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes panelIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
 .detail-head {
   display: flex;
@@ -319,9 +331,9 @@ onMounted(load)
 }
 .detail-grid section {
   padding: 1rem;
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid rgba(220, 229, 242, 0.92);
+  border-radius: 12px;
+  background: #F8FAFC;
+  border: 1px solid var(--border-light);
 }
 .detail-grid section.wide {
   grid-column: 1 / -1;

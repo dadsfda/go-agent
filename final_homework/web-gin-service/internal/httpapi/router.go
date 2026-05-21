@@ -43,6 +43,7 @@ func NewRouter(logic *rpcclient.Client) *gin.Engine {
 	hr.GET("/applications", router.listApplications)
 	hr.POST("/ai", router.askAI)
 	hr.GET("/ai/history", router.aiHistory)
+	hr.DELETE("/ai/history", router.clearAIHistory)
 
 	return engine
 }
@@ -335,6 +336,17 @@ func (r *Router) aiHistory(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"messages": aiMessagesFromPB(resp.Messages)})
+}
+
+func (r *Router) clearAIHistory(c *gin.Context) {
+	ctx, cancel := rpcclient.WithTimeout(c.Request.Context())
+	defer cancel()
+	_, err := r.logic.Logic().ClearAIHistory(ctx, &logicpb.UserIDRequest{UserId: currentUserID(c)})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
 
 func bindJSON(c *gin.Context, target any) bool {

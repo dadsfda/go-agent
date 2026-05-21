@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { request } from '../api.js'
 import { auth } from '../stores/auth.js'
 
@@ -41,8 +41,6 @@ async function applyJob(jobId) {
   }
 }
 
-const selectedDescriptionBlocks = computed(() => buildDescriptionBlocks(selectedJob.value?.description))
-
 function openDetail(job) {
   selectedJob.value = job
 }
@@ -57,40 +55,6 @@ function previewDescription(text, length = 76) {
   return value.length > length ? value.slice(0, length) + '...' : value
 }
 
-function normalizeDescription(text) {
-  return String(text || '')
-    .replace(/\r/g, '')
-    .replace(/([。；;])\s*(?=(?:\d+[.、]|[（(]\d+[）)]))/g, '$1\n')
-    .trim()
-}
-
-function buildDescriptionBlocks(text) {
-  const lines = normalizeDescription(text)
-    .split(/\n+/)
-    .map(line => line.trim())
-    .filter(Boolean)
-
-  const blocks = []
-  let listItems = []
-  const flushList = () => {
-    if (!listItems.length) return
-    blocks.push({ type: 'list', items: listItems })
-    listItems = []
-  }
-
-  lines.forEach(line => {
-    const matched = line.match(/^(?:[-*•]|(?:\d+[.、])|(?:[（(]\d+[）)]))\s*(.+)$/)
-    if (matched) {
-      listItems.push(matched[1])
-      return
-    }
-    flushList()
-    blocks.push({ type: 'paragraph', text: line })
-  })
-  flushList()
-  return blocks.length ? blocks : [{ type: 'paragraph', text: '暂无岗位描述' }]
-}
-
 onMounted(loadJobs)
 </script>
 
@@ -103,7 +67,7 @@ onMounted(loadJobs)
 
     <div v-if="!jobs.length" class="empty card">暂无公开岗位，请等待 HR 发布</div>
 
-    <div v-else class="job-grid">
+    <div v-else class="job-grid stagger-in">
       <div v-for="job in jobs" :key="job.id" class="job-card">
         <div class="job-main">
           <div>
@@ -145,16 +109,7 @@ onMounted(loadJobs)
         </div>
 
         <div class="detail-body">
-          <section
-            v-for="(block, index) in selectedDescriptionBlocks"
-            :key="`${block.type}-${index}`"
-            class="description-block"
-          >
-            <p v-if="block.type === 'paragraph'">{{ block.text }}</p>
-            <ul v-else>
-              <li v-for="item in block.items" :key="item">{{ item }}</li>
-            </ul>
-          </section>
+          <p class="description-text">{{ selectedJob.description || '暂无岗位描述' }}</p>
         </div>
 
         <div class="detail-actions">
@@ -186,17 +141,17 @@ onMounted(loadJobs)
   display: grid;
   gap: 1rem;
   align-content: space-between;
-  padding: 1.45rem;
+  padding: 1.5rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
   box-shadow: var(--shadow);
-  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  transition: all var(--transition);
 }
 .job-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: rgba(37, 99, 235, 0.22);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(22, 163, 74, 0.12);
 }
 .job-main {
   display: grid;
@@ -204,23 +159,26 @@ onMounted(loadJobs)
 }
 .job-kicker {
   display: inline-flex;
+  width: fit-content;
   margin-bottom: 0.5rem;
-  padding: 0.22rem 0.58rem;
+  padding: 0.24rem 0.65rem;
   border-radius: 999px;
   background: var(--primary-light);
   color: var(--primary);
-  font-size: 0.74rem;
-  font-weight: 800;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 .job-main h3 {
-  font-size: 1.12rem;
+  font-size: 1.1rem;
   line-height: 1.4;
   margin-bottom: 0.45rem;
+  font-weight: 800;
 }
 .job-main p {
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.8;
+  font-size: 0.88rem;
+  line-height: 1.75;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -233,7 +191,9 @@ onMounted(loadJobs)
   background: transparent;
   color: var(--primary);
   font-weight: 700;
+  font-size: 0.84rem;
 }
+.detail-link:hover { text-decoration: underline; }
 .job-foot {
   display: flex;
   align-items: center;
@@ -257,15 +217,25 @@ onMounted(loadJobs)
   z-index: 1000;
   display: flex;
   justify-content: flex-end;
-  background: rgba(15, 23, 42, 0.36);
+  background: rgba(15, 23, 42, 0.35);
+  animation: maskIn 0.2s ease;
+}
+@keyframes maskIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .detail-panel {
   width: min(720px, 100%);
   height: 100%;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 100%);
-  box-shadow: -12px 0 36px rgba(15, 23, 42, 0.18);
+  background: var(--bg-card);
+  box-shadow: -16px 0 48px rgba(15, 23, 42, 0.15);
+  animation: panelIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes panelIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
 .detail-head {
   display: flex;
@@ -273,18 +243,20 @@ onMounted(loadJobs)
   justify-content: space-between;
   gap: 1rem;
   padding: 1.5rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-light);
 }
 .detail-kicker {
   display: inline-block;
   color: var(--primary);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
   margin-bottom: 0.35rem;
+  letter-spacing: 0.02em;
 }
 .detail-head h2 {
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   line-height: 1.4;
+  font-weight: 800;
 }
 .detail-head p {
   margin-top: 0.25rem;
@@ -298,36 +270,18 @@ onMounted(loadJobs)
   overflow-y: auto;
   padding: 1.5rem;
 }
-.description-block {
-  padding: 1rem 1.1rem;
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid rgba(220, 229, 242, 0.92);
-}
-.description-block + .description-block {
-  margin-top: 1rem;
-}
-.description-block p,
-.description-block li {
+.description-text {
   color: var(--text-secondary);
-  font-size: 0.95rem;
-  line-height: 1.95;
-}
-.description-block p {
-  white-space: pre-line;
-}
-.description-block ul {
-  padding-left: 1.3rem;
-}
-.description-block li + li {
-  margin-top: 0.45rem;
+  font-size: 0.92rem;
+  line-height: 1.85;
+  white-space: pre-wrap;
 }
 .detail-actions {
   display: flex;
   justify-content: flex-end;
   padding: 1rem 1.5rem 1.5rem;
-  border-top: 1px solid var(--border);
-  background: #fff;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-card);
 }
 @media (max-width: 720px) {
   .job-grid {

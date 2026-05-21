@@ -1,0 +1,14 @@
+mysql:
+  dsn: "root:123456@tcp(127.0.0.1:3306)/smart_recruitment?parseTime=true&charset=utf8mb4&loc=Local"
+
+cos:
+  bucket: "ai-1418276225"
+  region: "ap-guangzhou"
+  endpoint: "https://ai-1418276225.cos.ap-guangzhou.myqcloud.com"
+  secret_id: "替换为你的 SecretId"
+  secret_key: "替换为你的 SecretKey"
+
+ai:
+  base_url: "https://api.deepseek.com"
+  model: "deepseek-v4-flash"
+  api_key: "替换为你的 DeepSeek API Key"

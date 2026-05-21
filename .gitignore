@@ -1,0 +1,5 @@
+final_homework/logic-grpc-service/config/config.yaml
+final_homework/logs/
+final_homework/**/dist/
+final_homework/**/node_modules/
+.claude/

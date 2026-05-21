@@ -1,0 +1,150 @@
+syntax = "proto3";
+
+package smartrecruitment;
+
+option go_package = "smart-recruitment/logic-grpc-service/proto;logicpb";
+
+service LogicService {
+  rpc Register(AuthRequest) returns (AuthResponse);
+  rpc Login(AuthRequest) returns (AuthResponse);
+  rpc SaveProfile(SaveProfileRequest) returns (Empty);
+  rpc GetProfile(UserIDRequest) returns (Profile);
+  rpc UploadResume(UploadResumeRequest) returns (Resume);
+  rpc ParseResume(UploadResumeRequest) returns (Profile);
+  rpc CreateJob(CreateJobRequest) returns (Job);
+  rpc UpdateJob(UpdateJobRequest) returns (Empty);
+  rpc ListJobs(Empty) returns (JobListResponse);
+  rpc ListHRJobs(UserIDRequest) returns (JobListResponse);
+  rpc ApplyJob(ApplyJobRequest) returns (Application);
+  rpc ListCandidateApplications(UserIDRequest) returns (ApplicationListResponse);
+  rpc ListApplications(ListApplicationsRequest) returns (ApplicationListResponse);
+  rpc AskAI(AskAIRequest) returns (AIMessage);
+  rpc AIHistory(UserIDRequest) returns (AIHistoryResponse);
+}
+
+message Empty {}
+
+message AuthRequest {
+  string role = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message AuthResponse {
+  User user = 1;
+}
+
+message UserIDRequest {
+  int64 user_id = 1;
+}
+
+message ListApplicationsRequest {
+  int64 user_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message SaveProfileRequest {
+  int64 user_id = 1;
+  Profile profile = 2;
+}
+
+message UploadResumeRequest {
+  int64 user_id = 1;
+  string file_name = 2;
+  bytes content = 3;
+}
+
+message CreateJobRequest {
+  int64 hr_id = 1;
+  string title = 2;
+  string description = 3;
+}
+
+message UpdateJobRequest {
+  int64 hr_id = 1;
+  int64 job_id = 2;
+  string title = 3;
+  string description = 4;
+  string status = 5;
+}
+
+message ApplyJobRequest {
+  int64 candidate_id = 1;
+  int64 job_id = 2;
+}
+
+message AskAIRequest {
+  int64 hr_id = 1;
+  string question = 2;
+}
+
+message User {
+  int64 id = 1;
+  string role = 2;
+  string email = 3;
+}
+
+message Profile {
+  int64 candidate_id = 1;
+  string name = 2;
+  string phone = 3;
+  string education = 4;
+  string school = 5;
+  string experience = 6;
+  string skills = 7;
+}
+
+message Job {
+  int64 id = 1;
+  int64 owner_hr_id = 2;
+  string title = 3;
+  string description = 4;
+  string status = 5;
+  string created_at = 6;
+}
+
+message Resume {
+  int64 id = 1;
+  int64 candidate_id = 2;
+  string file_name = 3;
+  string object_key = 4;
+  string signed_url = 5;
+  string uploaded_at = 6;
+}
+
+message Application {
+  int64 id = 1;
+  int64 job_id = 2;
+  int64 candidate_id = 3;
+  int64 resume_id = 4;
+  string created_at = 5;
+  Job job = 6;
+  User candidate = 7;
+  Profile profile = 8;
+  Resume resume = 9;
+}
+
+message AIMessage {
+  int64 id = 1;
+  int64 hr_id = 2;
+  string question = 3;
+  string answer = 4;
+  string created_at = 5;
+}
+
+message JobListResponse {
+  repeated Job jobs = 1;
+}
+
+message ApplicationListResponse {
+  repeated Application items = 1;
+  repeated Application applications = 2;
+  int32 total = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message AIHistoryResponse {
+  repeated AIMessage messages = 1;
+}

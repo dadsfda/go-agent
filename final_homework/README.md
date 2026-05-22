@@ -141,19 +141,7 @@ npm run dev -- --host
 localStorage.setItem("apiBase", "http://127.0.0.1:8080/api")
 ```
 
-## 5. 演示流程
-
-1. 打开 HR 管理端，注册 HR 账号并登录。
-2. 发布一个岗位。
-3. 打开候选人端，游客模式查看公开岗位。
-4. 注册候选人账号，填写完整档案。
-5. 上传 PDF、DOC 或 DOCX 简历。
-6. 投递岗位。
-7. 回到 HR 管理端，查看候选人台账。
-8. 在 AI 对话窗口提问“投递总人数是多少”。
-9. 刷新页面后重新加载 AI 历史。
-
-## 6. 项目亮点
+## 5. 项目亮点
 
 1. 两层服务架构清晰，Web 到 Logic 强制走 gRPC。
 2. HR 与候选人角色隔离，岗位操作校验归属。
@@ -161,7 +149,7 @@ localStorage.setItem("apiBase", "http://127.0.0.1:8080/api")
 4. 简历文件上传到私有腾讯云 COS，HR 访问时使用短有效期签名 URL。
 5. AI 问答通过 Eino 调用 DeepSeek，并基于 MySQL 业务数据生成回答，持久化历史上下文。
 
-## 7. 测试
+## 6. 测试
 
 ```powershell
 cd final_homework/logic-grpc-service

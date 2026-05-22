@@ -317,7 +317,7 @@ func (r *Router) askAI(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
-	ctx, cancel := rpcclient.WithTimeout(c.Request.Context())
+	ctx, cancel := rpcclient.WithAIAnswerTimeout(c.Request.Context())
 	defer cancel()
 	message, err := r.logic.Logic().AskAI(ctx, &logicpb.AskAIRequest{HrId: currentUserID(c), Question: req.Question})
 	if err != nil {

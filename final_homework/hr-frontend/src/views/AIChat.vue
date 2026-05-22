@@ -33,20 +33,24 @@ function scrollToBottom() {
 async function send() {
   const q = question.value.trim()
   if (!q || loading.value) return
+  question.value = ''
+  messages.value.push({ question: q, answer: '' })
   loading.value = true
+  await nextTick()
+  scrollToBottom()
   try {
     const data = await request('/hr/ai', {
       method: 'POST',
       body: JSON.stringify({ question: q })
     })
-    messages.value.push({ question: q, answer: data.answer })
-    question.value = ''
-    await nextTick()
-    scrollToBottom()
+    messages.value[messages.value.length - 1].answer = data.answer
   } catch (e) {
+    messages.value.pop()
     emit('toast', { message: e.message, type: 'error' })
   } finally {
     loading.value = false
+    await nextTick()
+    scrollToBottom()
   }
 }
 
@@ -161,16 +165,12 @@ onMounted(loadHistory)
             </div>
             <div class="message-row ai-row">
               <div class="avatar ai-avatar">AI</div>
-              <div class="bubble bubble-ai">
+              <div v-if="msg.answer" class="bubble bubble-ai">
                 <div v-html="formatAnswer(msg.answer)"></div>
               </div>
-            </div>
-          </div>
-
-          <div v-if="loading" class="message-row ai-row">
-            <div class="avatar ai-avatar">AI</div>
-            <div class="bubble bubble-ai thinking">
-              <span></span><span></span><span></span>
+              <div v-else class="bubble bubble-ai thinking">
+                <span></span><span></span><span></span>
+              </div>
             </div>
           </div>
         </div>

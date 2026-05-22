@@ -188,7 +188,7 @@ func (s *MySQLStore) UploadResume(candidateID int64, fileName string, content []
 	}
 	ext := strings.ToLower(filepath.Ext(fileName))
 	objectKey := fmt.Sprintf("resumes/%d/%d-%s", candidateID, time.Now().UnixNano(), filepath.Base(fileName))
-	signed := signedURL(candidateID, fileName)
+	var signed string
 	if s.cos != nil {
 		if err := s.cos.PutObject(context.Background(), objectKey, content); err != nil {
 			return Resume{}, err
@@ -392,7 +392,6 @@ func (s *MySQLStore) ListApplicationsPage(hrID int64, page, pageSize int) (Appli
 		); err != nil {
 			return ApplicationPage{}, err
 		}
-		item.Resume.SignedURL = signedURL(item.Resume.CandidateID, item.Resume.FileName)
 		if s.cos != nil {
 			signed, err := s.cos.SignedGetURL(context.Background(), item.Resume.ObjectKey, time.Hour)
 			if err != nil {
@@ -436,7 +435,6 @@ func (s *MySQLStore) ListCandidateApplications(candidateID int64) ([]Application
 		); err != nil {
 			return nil, err
 		}
-		item.Resume.SignedURL = signedURL(item.Resume.CandidateID, item.Resume.FileName)
 		items = append(items, item)
 	}
 	return items, rows.Err()
@@ -564,7 +562,6 @@ func (s *MySQLStore) latestResume(candidateID int64) (Resume, error) {
 	if err != nil {
 		return Resume{}, errors.New("简历不存在")
 	}
-	resume.SignedURL = signedURL(candidateID, resume.FileName)
 	if s.cos != nil {
 		signed, err := s.cos.SignedGetURL(context.Background(), resume.ObjectKey, time.Hour)
 		if err != nil {
@@ -671,8 +668,4 @@ func scanJobs(rows *sql.Rows) ([]Job, error) {
 		jobs = append(jobs, job)
 	}
 	return jobs, rows.Err()
-}
-
-func signedURL(candidateID int64, fileName string) string {
-	return fmt.Sprintf("https://private-oss.example.com/sign/resumes/%d/%s", candidateID, filepath.Base(fileName))
 }

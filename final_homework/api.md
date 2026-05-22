@@ -86,11 +86,11 @@ Authorization: Bearer <token>
 
 ### POST `/candidate/resume/parse`
 
-可选能力：上传文字版 PDF 简历后，后端通过 Eino 调用大模型解析结构化档案字段。该能力不作为本期核心验收依赖。
+可选能力：上传文字版 PDF、DOC 或 DOCX 简历后，后端先提取文本，再通过 Eino 调用大模型解析结构化档案字段。该能力不作为本期核心验收依赖。
 
 字段：
 
-- `resume`：PDF 文件。
+- `resume`：PDF、DOC 或 DOCX 文件。
 
 ### POST `/candidate/applications`
 
@@ -122,7 +122,7 @@ Authorization: Bearer <token>
 
 ### GET `/hr/jobs`
 
-查看当前 HR 创建的岗位。
+查看全部未删除岗位。前端会展示全部岗位，但编辑、下架、删除等维护动作仅允许操作当前 HR 本人创建的岗位。
 
 ### POST `/hr/jobs`
 
@@ -184,3 +184,15 @@ Authorization: Bearer <token>
 ### GET `/hr/ai/history`
 
 获取当前 HR 的历史 AI 对话上下文。
+
+### DELETE `/hr/ai/history`
+
+清空当前 HR 的历史 AI 对话记录，仅删除当前登录 HR 账号自己的聊天历史。
+
+响应：
+
+```json
+{
+  "ok": true
+}
+```

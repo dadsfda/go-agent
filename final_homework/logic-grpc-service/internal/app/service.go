@@ -241,7 +241,6 @@ func (s *Service) UploadResume(candidateID int64, fileName string, content []byt
 		CandidateID: candidateID,
 		FileName:    fileName,
 		ObjectKey:   fmt.Sprintf("resumes/%d/%d-%s", candidateID, time.Now().UnixNano(), filepath.Base(fileName)),
-		SignedURL:   fmt.Sprintf("https://private-oss.example.com/sign/resumes/%d/%s", candidateID, filepath.Base(fileName)),
 		UploadedAt:  now,
 	}
 	if s.cos != nil {

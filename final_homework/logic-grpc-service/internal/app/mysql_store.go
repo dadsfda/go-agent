@@ -508,19 +508,30 @@ func (s *MySQLStore) recentHistory(hrID int64, limit int) []ChatMessage {
 		return nil
 	}
 	defer rows.Close()
-	var pairs []ChatMessage
+	type qaPair struct {
+		question string
+		answer   string
+	}
+	var pairs []qaPair
 	for rows.Next() {
 		var q, a string
 		if err := rows.Scan(&q, &a); err != nil {
 			continue
 		}
-		pairs = append(pairs, ChatMessage{Role: "user", Content: q}, ChatMessage{Role: "assistant", Content: a})
+		pairs = append(pairs, qaPair{question: q, answer: a})
 	}
 	// 反转为时间正序
 	for i, j := 0, len(pairs)-1; i < j; i, j = i+1, j-1 {
 		pairs[i], pairs[j] = pairs[j], pairs[i]
 	}
-	return pairs
+	history := make([]ChatMessage, 0, len(pairs)*2)
+	for _, pair := range pairs {
+		history = append(history,
+			ChatMessage{Role: "user", Content: pair.question},
+			ChatMessage{Role: "assistant", Content: pair.answer},
+		)
+	}
+	return history
 }
 
 func (s *MySQLStore) UserByID(id int64) (User, error) {
